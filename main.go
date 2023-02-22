@@ -63,7 +63,6 @@ func main() {
 				Destination: &c.OutputPath,
 			},
 		},
-		Usage: "fight the loneliness!",
 		Action: func(*urcli.Context) error {
 			execute()
 			return nil
@@ -140,6 +139,13 @@ func execute() {
 				Metadata:   "",
 			}
 			v.Spec.Version = version.String()
+		}
+
+		if _, err := os.Stat(c.OutputPath); os.IsNotExist(err) {
+			err := os.Mkdir(c.OutputPath, os.ModePerm)
+			if err != nil {
+				panic("Unable to create output directory")
+			}
 		}
 
 		y := printers.YAMLPrinter{}
