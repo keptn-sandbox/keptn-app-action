@@ -246,22 +246,22 @@ func parseDeployment(obj interface{}) (keptnv1alpha2.KeptnWorkloadRef, string, b
 	gotAppAnnotation := false
 	containerVersion := ""
 
-	switch obj.(type) {
+	switch t := obj.(type) {
 	case *apps.Deployment:
-		deployment := obj.(*apps.Deployment)
+		deployment := t
 		workload, gotWorkloadAnnotation = getLabelOrAnnotation(&deployment.Spec.Template.ObjectMeta, workloadAnnotation, k8sRecommendedWorkloadAnnotations)
 		version, gotVersionAnnotation = getLabelOrAnnotation(&deployment.Spec.Template.ObjectMeta, versionAnnotation, k8sRecommendedVersionAnnotations)
 		application, gotAppAnnotation = getLabelOrAnnotation(&deployment.Spec.Template.ObjectMeta, appAnnotation, k8sRecommendedAppAnnotations)
 		containerVersion = calculateVersion(deployment.Spec.Template)
 
 	case *apps.StatefulSet:
-		statefulset := obj.(*apps.StatefulSet)
+		statefulset := t
 		workload, gotWorkloadAnnotation = getLabelOrAnnotation(&statefulset.Spec.Template.ObjectMeta, workloadAnnotation, k8sRecommendedWorkloadAnnotations)
 		version, gotVersionAnnotation = getLabelOrAnnotation(&statefulset.Spec.Template.ObjectMeta, versionAnnotation, k8sRecommendedVersionAnnotations)
 		application, gotAppAnnotation = getLabelOrAnnotation(&statefulset.Spec.Template.ObjectMeta, appAnnotation, k8sRecommendedAppAnnotations)
 		containerVersion = calculateVersion(statefulset.Spec.Template)
 	case *apps.DaemonSet:
-		daemonset := obj.(*apps.DaemonSet)
+		daemonset := t
 		workload, gotWorkloadAnnotation = getLabelOrAnnotation(&daemonset.Spec.Template.ObjectMeta, workloadAnnotation, k8sRecommendedWorkloadAnnotations)
 		version, gotVersionAnnotation = getLabelOrAnnotation(&daemonset.Spec.Template.ObjectMeta, versionAnnotation, k8sRecommendedVersionAnnotations)
 		application, gotAppAnnotation = getLabelOrAnnotation(&daemonset.Spec.Template.ObjectMeta, appAnnotation, k8sRecommendedAppAnnotations)
