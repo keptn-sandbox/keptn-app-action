@@ -1,5 +1,7 @@
 # keptn-config-generator
 
+[![Tests](https://github.com/thschue/keptn-config-generator/actions/workflows/test.yaml/badge.svg)](https://github.com/thschue/keptn-config-generator/actions/workflows/test.yaml)
+
 Generates a KeptnApp Custom Resource for a given kubernetes manifest
 
 ## Pre-requisites
