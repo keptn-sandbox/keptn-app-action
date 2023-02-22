@@ -2,7 +2,7 @@
 
 [![Test](https://github.com/thschue/keptn-config-generator/actions/workflows/test.yaml/badge.svg)](https://github.com/thschue/keptn-config-generator/actions/workflows/test.yaml)
 
-Generates a KeptnApp Custom Resource for a given kubernetes manifest
+Generates a KeptnApp Custom Resource for a given directory of kubernetes manifests
 
 ## Pre-requisites
 * Tested with go 1.19
