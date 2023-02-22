@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/coreos/go-semver/semver"
 	keptnv1alpha2 "github.com/keptn/lifecycle-toolkit/operator/apis/lifecycle/v1alpha2"
+	urcli "github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 	"hash/fnv"
 	"io"
@@ -40,13 +41,42 @@ const k8sRecommendedVersionAnnotations = "app.kubernetes.io/version"
 const k8sRecommendedAppAnnotations = "app.kubernetes.io/part-of"
 
 func main() {
-	c.Scheme = runtime.NewScheme()
-	c.InputPath = "data"
-	c.OutputPath = "output"
-
-	if c.VersionUpgradeMode == "" {
-		c.VersionUpgradeMode = "patch"
+	app := &urcli.App{
+		Name: "keptn-config-generator",
+		Flags: []urcli.Flag{
+			&urcli.StringFlag{
+				Name:        "bump",
+				Value:       "patch",
+				Usage:       "bump major, minor or patch",
+				Destination: &c.VersionUpgradeMode,
+			},
+			&urcli.StringFlag{
+				Name:        "inputPath",
+				Value:       "data",
+				Usage:       "input path",
+				Destination: &c.InputPath,
+			},
+			&urcli.StringFlag{
+				Name:        "outputPath",
+				Value:       "output",
+				Usage:       "output path",
+				Destination: &c.OutputPath,
+			},
+		},
+		Usage: "fight the loneliness!",
+		Action: func(*urcli.Context) error {
+			execute()
+			return nil
+		},
 	}
+
+	if err := app.Run(os.Args); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func execute() {
+	c.Scheme = runtime.NewScheme()
 
 	err := apps.AddToScheme(c.Scheme)
 	if err != nil {
@@ -115,7 +145,6 @@ func main() {
 		y := printers.YAMLPrinter{}
 		newFile, _ := os.Create(c.OutputPath + "/app-" + v.Name + ".yaml")
 		defer newFile.Close()
-		fmt.Println(v)
 		err := y.PrintObj(&v, newFile)
 		if err != nil {
 			fmt.Println(err)
@@ -142,28 +171,36 @@ func processYaml(file string) error {
 		if err != nil {
 			return err
 		}
+
+		var isWorkload = false
+		var data keptnv1alpha2.KeptnWorkloadRef
+		var app string
+
 		switch obj.(type) {
-		case *apps.Deployment:
-			data, app, isWorkload := parseDeployment(obj)
-			if isWorkload {
-				if application, ok := appList[app]; ok {
-					application.Spec.Workloads = append(application.Spec.Workloads, data)
-					appList[app] = application
-				} else {
-					appList[app] = keptnv1alpha2.KeptnApp{
-						TypeMeta: metav1.TypeMeta{
-							Kind:       "KeptnApp",
-							APIVersion: "lifecycle.keptn.sh/v1alpha2",
+		case *apps.Deployment, *apps.StatefulSet, *apps.DaemonSet:
+			data, app, isWorkload = parseDeployment(obj)
+		default:
+			continue
+		}
+
+		if isWorkload {
+			if application, ok := appList[app]; ok {
+				application.Spec.Workloads = append(application.Spec.Workloads, data)
+				appList[app] = application
+			} else {
+				appList[app] = keptnv1alpha2.KeptnApp{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "KeptnApp",
+						APIVersion: "lifecycle.keptn.sh/v1alpha2",
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name: app,
+					},
+					Spec: keptnv1alpha2.KeptnAppSpec{
+						Workloads: []keptnv1alpha2.KeptnWorkloadRef{
+							data,
 						},
-						ObjectMeta: metav1.ObjectMeta{
-							Name: app,
-						},
-						Spec: keptnv1alpha2.KeptnAppSpec{
-							Workloads: []keptnv1alpha2.KeptnWorkloadRef{
-								data,
-							},
-						},
-					}
+					},
 				}
 			}
 		}
@@ -195,11 +232,35 @@ func splitYAML(resources []byte) ([][]byte, error) {
 }
 
 func parseDeployment(obj interface{}) (keptnv1alpha2.KeptnWorkloadRef, string, bool) {
-	deployment := obj.(*apps.Deployment)
+	workload := ""
+	gotWorkloadAnnotation := false
+	version := ""
+	application := ""
+	gotVersionAnnotation := false
+	gotAppAnnotation := false
+	containerVersion := ""
 
-	workload, gotWorkloadAnnotation := getLabelOrAnnotation(&deployment.Spec.Template.ObjectMeta, workloadAnnotation, k8sRecommendedWorkloadAnnotations)
-	version, gotVersionAnnotation := getLabelOrAnnotation(&deployment.Spec.Template.ObjectMeta, versionAnnotation, k8sRecommendedVersionAnnotations)
-	application, gotAppAnnotation := getLabelOrAnnotation(&deployment.Spec.Template.ObjectMeta, appAnnotation, k8sRecommendedAppAnnotations)
+	switch obj.(type) {
+	case *apps.Deployment:
+		deployment := obj.(*apps.Deployment)
+		workload, gotWorkloadAnnotation = getLabelOrAnnotation(&deployment.Spec.Template.ObjectMeta, workloadAnnotation, k8sRecommendedWorkloadAnnotations)
+		version, gotVersionAnnotation = getLabelOrAnnotation(&deployment.Spec.Template.ObjectMeta, versionAnnotation, k8sRecommendedVersionAnnotations)
+		application, gotAppAnnotation = getLabelOrAnnotation(&deployment.Spec.Template.ObjectMeta, appAnnotation, k8sRecommendedAppAnnotations)
+		containerVersion = calculateVersion(deployment.Spec.Template)
+
+	case *apps.StatefulSet:
+		statefulset := obj.(*apps.StatefulSet)
+		workload, gotWorkloadAnnotation = getLabelOrAnnotation(&statefulset.Spec.Template.ObjectMeta, workloadAnnotation, k8sRecommendedWorkloadAnnotations)
+		version, gotVersionAnnotation = getLabelOrAnnotation(&statefulset.Spec.Template.ObjectMeta, versionAnnotation, k8sRecommendedVersionAnnotations)
+		application, gotAppAnnotation = getLabelOrAnnotation(&statefulset.Spec.Template.ObjectMeta, appAnnotation, k8sRecommendedAppAnnotations)
+		containerVersion = calculateVersion(statefulset.Spec.Template)
+	case *apps.DaemonSet:
+		daemonset := obj.(*apps.DaemonSet)
+		workload, gotWorkloadAnnotation = getLabelOrAnnotation(&daemonset.Spec.Template.ObjectMeta, workloadAnnotation, k8sRecommendedWorkloadAnnotations)
+		version, gotVersionAnnotation = getLabelOrAnnotation(&daemonset.Spec.Template.ObjectMeta, versionAnnotation, k8sRecommendedVersionAnnotations)
+		application, gotAppAnnotation = getLabelOrAnnotation(&daemonset.Spec.Template.ObjectMeta, appAnnotation, k8sRecommendedAppAnnotations)
+		containerVersion = calculateVersion(daemonset.Spec.Template)
+	}
 
 	if !gotWorkloadAnnotation {
 		fmt.Println("No workload annotation found")
@@ -208,7 +269,7 @@ func parseDeployment(obj interface{}) (keptnv1alpha2.KeptnWorkloadRef, string, b
 
 	if !gotVersionAnnotation {
 		fmt.Println("No version annotation found, calculating version")
-		version = calculateVersion(deployment.Spec.Template)
+		version = containerVersion
 	}
 
 	if !gotAppAnnotation {
