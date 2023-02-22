@@ -23,21 +23,21 @@ import (
 
 var appList = make(map[string]keptnv1alpha2.KeptnApp)
 
-type Config struct {
+type config struct {
 	Scheme             *runtime.Scheme
 	InputPath          string
 	OutputPath         string
 	VersionUpgradeMode string
 }
 
-var c Config
+var c config
 
-const WorkloadAnnotation = "keptn.sh/workload"
-const VersionAnnotation = "keptn.sh/version"
-const AppAnnotation = "keptn.sh/app"
-const K8sRecommendedWorkloadAnnotations = "app.kubernetes.io/name"
-const K8sRecommendedVersionAnnotations = "app.kubernetes.io/version"
-const K8sRecommendedAppAnnotations = "app.kubernetes.io/part-of"
+const workloadAnnotation = "keptn.sh/workload"
+const versionAnnotation = "keptn.sh/version"
+const appAnnotation = "keptn.sh/app"
+const k8sRecommendedWorkloadAnnotations = "app.kubernetes.io/name"
+const k8sRecommendedVersionAnnotations = "app.kubernetes.io/version"
+const k8sRecommendedAppAnnotations = "app.kubernetes.io/part-of"
 
 func main() {
 	c.Scheme = runtime.NewScheme()
@@ -129,7 +129,7 @@ func processYaml(file string) error {
 		return err
 	}
 
-	splitInput, err := SplitYAML(yamlFile)
+	splitInput, err := splitYAML(yamlFile)
 	if err != nil {
 		return err
 	}
@@ -171,7 +171,7 @@ func processYaml(file string) error {
 	return err
 }
 
-func SplitYAML(resources []byte) ([][]byte, error) {
+func splitYAML(resources []byte) ([][]byte, error) {
 
 	dec := yaml.NewDecoder(bytes.NewReader(resources))
 
@@ -197,9 +197,9 @@ func SplitYAML(resources []byte) ([][]byte, error) {
 func parseDeployment(obj interface{}) (keptnv1alpha2.KeptnWorkloadRef, string, bool) {
 	deployment := obj.(*apps.Deployment)
 
-	workload, gotWorkloadAnnotation := getLabelOrAnnotation(&deployment.Spec.Template.ObjectMeta, WorkloadAnnotation, K8sRecommendedWorkloadAnnotations)
-	version, gotVersionAnnotation := getLabelOrAnnotation(&deployment.Spec.Template.ObjectMeta, VersionAnnotation, K8sRecommendedVersionAnnotations)
-	application, gotAppAnnotation := getLabelOrAnnotation(&deployment.Spec.Template.ObjectMeta, AppAnnotation, K8sRecommendedAppAnnotations)
+	workload, gotWorkloadAnnotation := getLabelOrAnnotation(&deployment.Spec.Template.ObjectMeta, workloadAnnotation, k8sRecommendedWorkloadAnnotations)
+	version, gotVersionAnnotation := getLabelOrAnnotation(&deployment.Spec.Template.ObjectMeta, versionAnnotation, k8sRecommendedVersionAnnotations)
+	application, gotAppAnnotation := getLabelOrAnnotation(&deployment.Spec.Template.ObjectMeta, appAnnotation, k8sRecommendedAppAnnotations)
 
 	if !gotWorkloadAnnotation {
 		fmt.Println("No workload annotation found")
