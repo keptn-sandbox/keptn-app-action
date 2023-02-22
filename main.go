@@ -266,7 +266,3 @@ func calculateVersion(pod core.PodTemplateSpec) string {
 	h.Write([]byte(name))
 	return fmt.Sprint(h.Sum32())
 }
-
-func getAppVersion(filename string) {
-
-}
