@@ -35,15 +35,9 @@ var c Config
 const WorkloadAnnotation = "keptn.sh/workload"
 const VersionAnnotation = "keptn.sh/version"
 const AppAnnotation = "keptn.sh/app"
-const PreDeploymentTaskAnnotation = "keptn.sh/pre-deployment-tasks"
-const PostDeploymentTaskAnnotation = "keptn.sh/post-deployment-tasks"
 const K8sRecommendedWorkloadAnnotations = "app.kubernetes.io/name"
 const K8sRecommendedVersionAnnotations = "app.kubernetes.io/version"
 const K8sRecommendedAppAnnotations = "app.kubernetes.io/part-of"
-const PreDeploymentEvaluationAnnotation = "keptn.sh/pre-deployment-evaluations"
-const PostDeploymentEvaluationAnnotation = "keptn.sh/post-deployment-evaluations"
-const TaskNameAnnotation = "keptn.sh/task-name"
-const NamespaceEnabledAnnotation = "keptn.sh/lifecycle-toolkit"
 
 func main() {
 	c.Scheme = runtime.NewScheme()
@@ -83,10 +77,6 @@ func main() {
 	})
 
 	for _, v := range appList {
-		//err = os.WriteFile(k+"-output.yaml", yamlOutput, 0644)
-		//if err != nil {
-		//	panic("Unable to write data into the file")
-		//}
 		if _, err := os.Stat(c.OutputPath + "/app-" + v.Name + ".yaml"); err == nil {
 			yamlFile, err := os.ReadFile(c.OutputPath + "/app-" + v.Name + ".yaml")
 			if err != nil {
