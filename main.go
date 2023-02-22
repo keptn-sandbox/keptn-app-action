@@ -52,7 +52,7 @@ func main() {
 			},
 			&urcli.StringFlag{
 				Name:        "inputPath",
-				Value:       "data",
+				Value:       "manifests",
 				Usage:       "input path",
 				Destination: &c.InputPath,
 			},
@@ -269,17 +269,14 @@ func parseDeployment(obj interface{}) (keptnv1alpha2.KeptnWorkloadRef, string, b
 	}
 
 	if !gotWorkloadAnnotation {
-		fmt.Println("No workload annotation found")
 		return keptnv1alpha2.KeptnWorkloadRef{}, "", false
 	}
 
 	if !gotVersionAnnotation {
-		fmt.Println("No version annotation found, calculating version")
 		version = containerVersion
 	}
 
 	if !gotAppAnnotation {
-		fmt.Println("No app annotation found, assuming workload name as app name")
 		application = workload
 	}
 
