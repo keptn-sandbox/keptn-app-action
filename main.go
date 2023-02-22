@@ -50,17 +50,17 @@ func main() {
 
 	err := apps.AddToScheme(c.Scheme)
 	if err != nil {
-		fmt.Errorf("could not add apps to scheme: %w", err)
+		fmt.Println("could not add apps to scheme: %w", err)
 	}
 
 	err = core.AddToScheme(c.Scheme)
 	if err != nil {
-		fmt.Errorf("could not add apps to scheme: %w", err)
+		fmt.Println("could not add apps to scheme: %w", err)
 	}
 
 	err = keptnv1alpha2.AddToScheme(c.Scheme)
 	if err != nil {
-		fmt.Errorf("could not add keptn to scheme: %w", err)
+		fmt.Println("could not add keptn to scheme: %w", err)
 	}
 
 	filepath.Walk(c.InputPath, func(path string, info os.FileInfo, err error) error {
