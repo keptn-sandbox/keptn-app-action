@@ -2,10 +2,12 @@ package main
 
 import (
 	"bytes"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"github.com/coreos/go-semver/semver"
 	keptnv1alpha2 "github.com/keptn/lifecycle-toolkit/operator/apis/lifecycle/v1alpha2"
+	hashstructure "github.com/mitchellh/hashstructure/v2"
 	urcli "github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 	"hash/fnv"
@@ -19,6 +21,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -29,6 +32,7 @@ type config struct {
 	InputPath          string
 	OutputPath         string
 	VersionUpgradeMode string
+	Version            string
 }
 
 var c config
@@ -61,6 +65,11 @@ func main() {
 				Value:       "output",
 				Usage:       "output path",
 				Destination: &c.OutputPath,
+			},
+			&urcli.StringFlag{
+				Name:        "version",
+				Usage:       "specify the version which should be used",
+				Destination: &c.Version,
 			},
 		},
 		Action: func(*urcli.Context) error {
@@ -106,39 +115,27 @@ func execute() {
 	})
 
 	for _, v := range appList {
+		app := keptnv1alpha2.KeptnApp{}
 		if _, err := os.Stat(c.OutputPath + "/app-" + v.Name + ".yaml"); err == nil {
 			yamlFile, err := os.ReadFile(c.OutputPath + "/app-" + v.Name + ".yaml")
 			if err != nil {
 				panic("Unable to open file")
 			}
-			app := keptnv1alpha2.KeptnApp{}
 			err = yaml.Unmarshal(yamlFile, &app)
 			if err != nil {
 				panic("Unable to unmarshal file")
 			}
-
-			version := semver.New(app.Spec.Version)
-			if err != nil {
-				panic("Unable to parse version")
-			}
-			switch c.VersionUpgradeMode {
-			case "patch":
-				version.BumpPatch()
-			case "major":
-				version.BumpMajor()
-			case "minor":
-				version.BumpMinor()
-			}
-			v.Spec.Version = version.String()
+			v.Spec.Version = setVersion(app.Spec.Version)
 		} else if errors.Is(err, os.ErrNotExist) {
-			version := semver.Version{
-				Major:      0,
-				Minor:      0,
-				Patch:      1,
-				PreRelease: "",
-				Metadata:   "",
+			if c.Version == "" {
+				v.Spec.Version = "0.0.1"
+			} else {
+				v.Spec.Version = c.Version
 			}
-			v.Spec.Version = version.String()
+		}
+
+		if err != nil {
+			panic(err)
 		}
 
 		if _, err := os.Stat(c.OutputPath); os.IsNotExist(err) {
@@ -155,7 +152,27 @@ func execute() {
 		if err != nil {
 			fmt.Println(err)
 		}
+
 	}
+}
+
+func setVersion(version string) string {
+	if c.Version != "" {
+		return c.Version
+	}
+
+	ver := semver.New(version)
+
+	switch c.VersionUpgradeMode {
+	case "patch":
+		ver.BumpPatch()
+	case "major":
+		ver.BumpMajor()
+	case "minor":
+		ver.BumpMinor()
+	}
+
+	return ver.String()
 }
 
 func processYaml(file string) error {
@@ -329,4 +346,22 @@ func calculateVersion(pod core.PodTemplateSpec) string {
 	h := fnv.New32a()
 	h.Write([]byte(name))
 	return fmt.Sprint(h.Sum32())
+}
+
+func calculateHash(objs ...interface{}) (string, error) {
+	const hashFormat = hashstructure.FormatV2
+
+	sum := fnv.New64()
+	b := make([]byte, 8)
+
+	for _, obj := range objs {
+		hash, err := hashstructure.Hash(obj, hashFormat, nil)
+		if err != nil {
+			return "", err
+		}
+		binary.LittleEndian.PutUint64(b, uint64(hash))
+		sum.Write(b)
+	}
+
+	return strconv.FormatUint(sum.Sum64(), 10), nil
 }

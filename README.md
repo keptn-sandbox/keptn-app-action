@@ -16,4 +16,5 @@ Generates a KeptnApp Custom Resource for a given directory of kubernetes manifes
 ## Parameters
 * `--inputPath` - path to the folder containing the manifests
 * `--outputPath` - path to the folder where the KeptnApp CR will be generated
-* `--bump` - defines how the appVersion should be bumped if an App Manifest exists (default: patch, options: major, minor, patch
+* `--bump` - defines how the appVersion should be bumped if an App Manifest exists (default: patch, options: major, minor, patch), will be ignored if a version is provided
+* `--version` - defines the version of the application

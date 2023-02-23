@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/coreos/go-semver v0.3.0
 	github.com/keptn/lifecycle-toolkit/operator v0.0.0-20230222104810-d175486fc108
+	github.com/mitchellh/hashstructure/v2 v2.0.2
 	github.com/urfave/cli/v2 v2.24.4
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.26.1
