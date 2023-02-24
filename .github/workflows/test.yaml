@@ -1,4 +1,4 @@
-name: Test
+name: Test and Build
 
 on:
   push:
@@ -26,6 +26,7 @@ jobs:
         run: go mod verify
 
       - name: Run go vet
+        working-directory: ./cmd/keptn-update-action
         run: go vet ./...
 
       - name: Install staticcheck
