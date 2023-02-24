@@ -1,0 +1,27 @@
+name: 'keptn-update-action'
+description: 'Automated releases for GitOps Projects'
+author: 'The Keptn Contributors'
+inputs:
+  inputPath:
+    description: 'The path to the input file'
+    required: false
+  outputPath:
+    description: 'The path to the output file'
+    required: true
+  version:
+    description: 'The version to update'
+    required: true
+  bump:
+    description: 'The bump type'
+    required: true
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - '--input ${{ inputs.inputPath }}'
+    - '--output ${{ inputs.outputPath }}'
+    - '--version ${{ inputs.version }}'
+    - '--bump ${{ inputs.bump }}'
+
+
+
