@@ -152,7 +152,6 @@ func execute() {
 		if err != nil {
 			fmt.Println(err)
 		}
-
 	}
 }
 

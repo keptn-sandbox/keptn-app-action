@@ -6,38 +6,66 @@ on:
   pull_request:
     branches: [main]
 
-jobs:
+env:
+  GO_VERSION: 1.19
+  REGISTRY: ghcr.io
 
-  audit:
+jobs:
+  lint-test:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Set up Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.19
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
 
-    - name: Verify dependencies
-      run: go mod verify
+      - name: Verify dependencies
+        run: go mod verify
 
-    - name: Build
-      run: go build -v ./...
+      - name: Run go vet
+        run: go vet ./...
 
-    - name: Run go vet
-      run: go vet ./...
+      - name: Install staticcheck
+        run: go install honnef.co/go/tools/cmd/staticcheck@latest
 
-    - name: Install staticcheck
-      run: go install honnef.co/go/tools/cmd/staticcheck@latest
+      - name: Run staticcheck
+        run: staticcheck ./...
 
-    - name: Run staticcheck
-      run: staticcheck ./...
+      - name: Install golint
+        run: go install golang.org/x/lint/golint@latest
 
-    - name: Install golint
-      run: go install golang.org/x/lint/golint@latest
+      - name: Run golint
+        run: golint ./...
 
-    - name: Run golint
-      run: golint ./...
+      - name: Run tests
+        run: go test -race -vet=off ./...
 
-    - name: Run tests
-      run: go test -race -vet=off ./...
+  build-container:
+    runs-on: ubuntu-20.04
+    needs: [lint-test]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Declare some variables
+        id: vars
+        shell: bash
+        run: |
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:dev-${{ steps.vars.outputs.sha_short }}
+            ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:dev
