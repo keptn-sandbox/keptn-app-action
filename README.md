@@ -11,7 +11,7 @@ Generates a KeptnApp Custom Resource for a given directory of kubernetes manifes
 * clone this repository
   > git clone https://github.com/thschue/keptn-config-generator.git
 * copy your manifests to the 'manifests' folder
-* run `go run main.go`
+* run `go run cmd/keptn-update-action/main.go`
 
 ## Parameters
 * `--inputPath` - path to the folder containing the manifests
