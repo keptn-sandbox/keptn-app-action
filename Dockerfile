@@ -16,4 +16,4 @@ FROM docker.io/debian:bullseye-slim
 
 COPY --from=builder /build/keptn-config-generator /keptn-config-generator
 
-CMD ["/keptn-config-generator"]
+ENTRYPOINT ["/keptn-config-generator"]
