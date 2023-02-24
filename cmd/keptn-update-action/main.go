@@ -138,6 +138,8 @@ func execute() {
 			panic(err)
 		}
 
+		fmt.Println(calculateHash(v.Spec.Workloads))
+		
 		if _, err := os.Stat(c.OutputPath); os.IsNotExist(err) {
 			err := os.Mkdir(c.OutputPath, os.ModePerm)
 			if err != nil {
