@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/binary"
 	"errors"
 	"fmt"
 	"github.com/coreos/go-semver/semver"
@@ -13,7 +12,6 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/storage/memory"
 	keptnv1alpha2 "github.com/keptn/lifecycle-toolkit/operator/apis/lifecycle/v1alpha2"
-	hashstructure "github.com/mitchellh/hashstructure/v2"
 	"github.com/thschue/keptn-config-generator/pkg/repoaccess"
 	urcli "github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
@@ -28,7 +26,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 )
 
@@ -159,8 +156,6 @@ func execute() {
 			panic(err)
 		}
 
-		fmt.Println(calculateHash(v.Spec.Workloads))
-
 		if _, err := os.Stat(c.OutputPath); os.IsNotExist(err) {
 			err := os.Mkdir(c.OutputPath, os.ModePerm)
 			if err != nil {
@@ -177,6 +172,7 @@ func execute() {
 		}
 
 		if c.Repository != "" && c.Token != "" {
+			fmt.Println("Will create/update GitHub - PR")
 			updatePR(v.Spec.Version, c.OutputPath+"/app-"+v.Name+".yaml")
 		}
 
@@ -490,22 +486,4 @@ func calculateVersion(pod core.PodTemplateSpec) string {
 	h := fnv.New32a()
 	h.Write([]byte(name))
 	return fmt.Sprint(h.Sum32())
-}
-
-func calculateHash(objs ...interface{}) (string, error) {
-	const hashFormat = hashstructure.FormatV2
-
-	sum := fnv.New64()
-	b := make([]byte, 8)
-
-	for _, obj := range objs {
-		hash, err := hashstructure.Hash(obj, hashFormat, nil)
-		if err != nil {
-			return "", err
-		}
-		binary.LittleEndian.PutUint64(b, uint64(hash))
-		sum.Write(b)
-	}
-
-	return strconv.FormatUint(sum.Sum64(), 10), nil
 }
