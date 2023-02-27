@@ -22,7 +22,10 @@ runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
-    - "--inputPath ${{ inputs.inputPath }} --outputPath ${{ inputs.outputPath }} --version  ${{ inputs.version }} --bump ${{ inputs.bump }}"
+    - "---inputPath ${{ inputs.inputPath }}"
+    - "---outputPath ${{ inputs.outputPath }}"
+    - "---version  ${{ inputs.version }} "
+    - "---bump ${{ inputs.bump }}"
 
 
 
