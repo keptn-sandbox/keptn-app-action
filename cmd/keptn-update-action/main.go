@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/coreos/go-semver/semver"
+	"github.com/go-git/go-billy/v5"
 	"github.com/go-git/go-billy/v5/memfs"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -224,27 +225,26 @@ func updatePR(version string, path string) {
 		fmt.Println(err)
 	}
 
-	newFile, err := fs.Create(path)
+	err = copyDir(c.InputPath, w, fs)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	data, err := os.ReadFile(path)
+	err = copyDir(c.OutputPath, w, fs)
 	if err != nil {
 		fmt.Println(err)
 	}
-	_, err = newFile.Write(data)
+
+	err = w.AddWithOptions(&git.AddOptions{
+		All: true,
+	})
+
 	if err != nil {
 		fmt.Println(err)
 	}
-	err = newFile.Close()
-	if err != nil {
-		fmt.Println(err)
-	}
-	_, err = w.Add(path)
-	if err != nil {
-		fmt.Println(err)
-	}
+
+	fmt.Println(w.Status())
+
 	_, err = w.Commit("Update app version", &git.CommitOptions{})
 	if err != nil {
 		fmt.Println(err)
@@ -259,18 +259,45 @@ func updatePR(version string, path string) {
 	}
 	fmt.Println("Remote updated.")
 
-	pr, err := c.Client.GetOpenPullRequest("keptn-"+version, "main")
+	_, err = c.Client.CreatePullRequest("keptn-"+version, "main", "Update Application Version "+version, "Update Application Version "+version)
 	if err != nil {
-		fmt.Println("could not check if PR exists: %w", err)
+		fmt.Println("could not create PR: %w", err)
 	}
+}
 
-	if pr == nil {
-		_, err = c.Client.CreatePullRequest("keptn-"+version, "main", "Update Application Version "+version, "Update Application Version "+version)
+func copyDir(pt string, w *git.Worktree, fs billy.Filesystem) error {
+	_ = fs.Remove(pt)
+
+	filepath.Walk(pt, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			fmt.Println("could not create PR: %w", err)
+			return err
 		}
 
-	}
+		if info.IsDir() {
+			return nil
+		}
+
+		newFile, err := fs.Create(path)
+		if err != nil {
+			return err
+		}
+
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		_, err = newFile.Write(data)
+		if err != nil {
+			return err
+		}
+		err = newFile.Close()
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	return nil
 }
 
 func setVersion(version string) string {
