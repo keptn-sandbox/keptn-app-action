@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/coreos/go-semver v0.3.0
+	github.com/google/go-github v17.0.0+incompatible
 	github.com/keptn/lifecycle-toolkit/operator v0.0.0-20230222104810-d175486fc108
 	github.com/mitchellh/hashstructure/v2 v2.0.2
 	github.com/urfave/cli/v2 v2.24.4
@@ -30,6 +31,7 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/gnostic v0.6.9 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect

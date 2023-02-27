@@ -8,6 +8,7 @@ import (
 	"github.com/coreos/go-semver/semver"
 	keptnv1alpha2 "github.com/keptn/lifecycle-toolkit/operator/apis/lifecycle/v1alpha2"
 	hashstructure "github.com/mitchellh/hashstructure/v2"
+	"github.com/thschue/keptn-config-generator/pkg/repoaccess"
 	urcli "github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 	"hash/fnv"
@@ -33,6 +34,9 @@ type config struct {
 	OutputPath         string
 	VersionUpgradeMode string
 	Version            string
+	Client             repoaccess.Client
+	Repository         string
+	Token              string
 }
 
 var c config
@@ -71,6 +75,16 @@ func main() {
 				Usage:       "specify the version which should be used",
 				Destination: &c.Version,
 			},
+			&urcli.StringFlag{
+				Name:        "token",
+				Usage:       "token to access the github repository",
+				Destination: &c.Token,
+			},
+			&urcli.StringFlag{
+				Name:        "repository",
+				Usage:       "repository path",
+				Destination: &c.Repository,
+			},
 		},
 		Action: func(*urcli.Context) error {
 			execute()
@@ -84,9 +98,10 @@ func main() {
 }
 
 func execute() {
+	var err error
 	c.Scheme = runtime.NewScheme()
 
-	err := apps.AddToScheme(c.Scheme)
+	err = apps.AddToScheme(c.Scheme)
 	if err != nil {
 		fmt.Println("could not add apps to scheme: %w", err)
 	}
@@ -153,6 +168,27 @@ func execute() {
 		err := y.PrintObj(&v, newFile)
 		if err != nil {
 			fmt.Println(err)
+		}
+
+		if c.Repository != "" && c.Token != "" {
+			updatePR(v.Spec.Version)
+		}
+
+	}
+}
+
+func updatePR(version string) {
+	var err error
+	c.Client, err = repoaccess.NewClient(c.Token, c.Repository)
+	if err != nil {
+		fmt.Println("could not create client: %w", err)
+	}
+
+	exists, err := c.Client.BranchExists("keptn-" + version)
+	if !exists {
+		err := c.Client.CreateBranch("main", "keptn-"+version)
+		if err != nil {
+			fmt.Println("could not create branch: %w", err)
 		}
 	}
 }

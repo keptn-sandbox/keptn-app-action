@@ -15,6 +15,12 @@ while getopts "i:o:v:b:" o; do
       b)
         export bump=${OPTARG}
         ;;
+      t)
+        export token=${OPTARG}
+        ;;
+      r)
+        export repository=${OPTARG}
+        ;;
   esac
 done
 
@@ -34,6 +40,14 @@ fi
 
 if [ -n "$bump" ]; then
   ARGS="$ARGS --bump $bump"
+fi
+
+if [ -n "$repository" ]; then
+  ARGS="$ARGS --repository repository"
+fi
+
+if [ -n "$token" ]; then
+  ARGS="$ARGS --token token"
 fi
 
 /keptn-config-generator ${ARGS}

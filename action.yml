@@ -18,6 +18,16 @@ inputs:
     description: 'The bump type'
     default: "false"
     required: false
+  token:
+    description: 'The github token'
+    default: ""
+    required: true
+  repository:
+    description: 'The github repository'
+    default: ""
+    required: true
+
+
 runs:
   using: 'docker'
   image: 'docker://ghcr.io/thschue/keptn-update-action:dev-8e06f00'
@@ -26,6 +36,8 @@ runs:
     - '-o ${{ inputs.outputPath }}'
     - '-v ${{ inputs.version }}'
     - '-b ${{ inputs.bump }}'
+    - '-t ${{ inputs.token }}'
+    - '-r ${{ inputs.repository }}'
 
 
 
