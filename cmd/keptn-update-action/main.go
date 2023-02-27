@@ -185,6 +185,9 @@ func updatePR(version string) {
 	}
 
 	exists, err := c.Client.BranchExists("keptn-" + version)
+	if err != nil {
+		fmt.Println("could not check if branch exists: %w", err)
+	}
 	if !exists {
 		err := c.Client.CreateBranch("main", "keptn-"+version)
 		if err != nil {
