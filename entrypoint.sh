@@ -36,8 +36,7 @@ if [ -n "$bump" ]; then
   ARGS="$ARGS --bump $bump"
 fi
 
-echo "Running \'go run cmd/keptn-update-action/main.go ${ARGS}\'"
-go run cmd/keptn-update-action/main.go ${ARGS}
+/keptn-config-generator ${ARGS}
 
 
 

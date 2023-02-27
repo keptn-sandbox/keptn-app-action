@@ -1,14 +1,18 @@
-FROM docker.io/golang:1.19
+FROM docker.io/golang:1.19 as builder
 
-COPY go.mod /app/go.mod
-COPY go.sum /app/go.sum
+RUN mkdir -p /build
 
-COPY cmd /app/cmd
-COPY entrypoint.sh /app/entrypoint.sh
+COPY go.mod /build/go.mod
+COPY go.sum /build/go.sum
 
-RUN chmod +x /app/entrypoint.sh
+RUN go mod download
 
-WORKDIR /app
+COPY . /build
 
-ENTRYPOINT ["/app/entrypoint.sh"]
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o keptn-config-generator cmd/keptn-update-action/main.go
 
+FROM docker.io/debian:bullseye-slim
+
+COPY --from=builder /build/keptn-config-generator /keptn-config-generator
+COPY entrypoint.sh /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
