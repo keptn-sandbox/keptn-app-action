@@ -6,5 +6,7 @@ COPY go.sum .
 COPY cmd .
 COPY entrypoint.sh .
 
-RUN ["./entrypoint.sh"]
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["./entrypoint.sh"]
 
