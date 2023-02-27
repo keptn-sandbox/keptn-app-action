@@ -6,6 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/coreos/go-semver/semver"
+	"github.com/go-git/go-billy/v5/memfs"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	"github.com/go-git/go-git/v5/storage/memory"
 	keptnv1alpha2 "github.com/keptn/lifecycle-toolkit/operator/apis/lifecycle/v1alpha2"
 	hashstructure "github.com/mitchellh/hashstructure/v2"
 	"github.com/thschue/keptn-config-generator/pkg/repoaccess"
@@ -171,13 +176,21 @@ func execute() {
 		}
 
 		if c.Repository != "" && c.Token != "" {
-			updatePR(v.Spec.Version)
+			updatePR(v.Spec.Version, c.OutputPath+"/app-"+v.Name+".yaml")
 		}
 
 	}
 }
 
-func updatePR(version string) {
+func updatePR(version string, path string) {
+	storer := memory.NewStorage()
+	fs := memfs.New()
+
+	auth := &http.BasicAuth{
+		Username: "thschue",
+		Password: c.Token,
+	}
+
 	var err error
 	c.Client, err = repoaccess.NewClient(c.Token, c.Repository)
 	if err != nil {
@@ -193,6 +206,70 @@ func updatePR(version string) {
 		if err != nil {
 			fmt.Println("could not create branch: %w", err)
 		}
+	}
+
+	repository := "https://github.com/" + c.Repository
+	r, err := git.Clone(storer, fs, &git.CloneOptions{
+		URL:           repository,
+		ReferenceName: plumbing.ReferenceName("refs/heads/keptn-" + version),
+		Auth:          auth,
+	})
+	if err != nil {
+		fmt.Printf("%v", err)
+	}
+	fmt.Println("Repository cloned")
+
+	w, err := r.Worktree()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	newFile, err := fs.Create(path)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		fmt.Println(err)
+	}
+	_, err = newFile.Write(data)
+	if err != nil {
+		fmt.Println(err)
+	}
+	err = newFile.Close()
+	if err != nil {
+		fmt.Println(err)
+	}
+	_, err = w.Add(path)
+	if err != nil {
+		fmt.Println(err)
+	}
+	_, err = w.Commit("Update app version", &git.CommitOptions{})
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	err = r.Push(&git.PushOptions{
+		RemoteName: "origin",
+		Auth:       auth,
+	})
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("Remote updated.")
+
+	pr, err := c.Client.GetOpenPullRequest("keptn-"+version, "main")
+	if err != nil {
+		fmt.Println("could not check if PR exists: %w", err)
+	}
+
+	if pr == nil {
+		_, err = c.Client.CreatePullRequest("keptn-"+version, "main", "Update Application Version "+version, "Update Application Version "+version)
+		if err != nil {
+			fmt.Println("could not create PR: %w", err)
+		}
+
 	}
 }
 

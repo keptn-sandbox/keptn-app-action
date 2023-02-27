@@ -19,7 +19,7 @@ type githubInstance struct {
 	client     *github.Client
 }
 
-func NewClient(accessToken string, url string) (client Client, err error) {
+func NewClient(accessToken string, repository string) (client Client, err error) {
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: accessToken},
@@ -28,7 +28,7 @@ func NewClient(accessToken string, url string) (client Client, err error) {
 
 	client.githubInstance.client = github.NewClient(tc)
 	client.githubInstance.context = ctx
-	if owner, repo, err := getGithubOwnerRepository(url); err != nil {
+	if owner, repo, err := getGithubOwnerRepository(repository); err != nil {
 		return client, err
 	} else {
 		client.githubInstance.owner = owner
@@ -42,6 +42,6 @@ func getGithubOwnerRepository(raw string) (owner, repository string, err error) 
 	if err != nil {
 		return owner, repository, err
 	}
-	splittedUrl := strings.Split(u.Path, "/")
-	return splittedUrl[1], splittedUrl[2], nil
+	repo := strings.Split(u.Path, "/")
+	return repo[0], repo[1], nil
 }
