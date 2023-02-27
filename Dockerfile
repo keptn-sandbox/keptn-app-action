@@ -5,6 +5,8 @@ RUN mkdir -p /build
 COPY go.mod /build/go.mod
 COPY go.sum /build/go.sum
 
+WORKDIR /build
+
 RUN go mod download
 
 COPY . /build
