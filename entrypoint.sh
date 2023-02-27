@@ -21,11 +21,11 @@ done
 ARGS=""
 
 if [ -n "$input" ]; then
-  ARGS="$ARGS --input $input"
+  ARGS="$ARGS --inputPath $input"
 fi
 
 if [ -n "$output" ]; then
-  ARGS="$ARGS --output $output"
+  ARGS="$ARGS --outputPath $output"
 fi
 
 if [ -n "$version" ]; then
