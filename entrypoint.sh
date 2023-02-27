@@ -46,9 +46,12 @@ if [ -n "$repository" ]; then
   ARGS="$ARGS --repository $repository"
 fi
 
+echo "ARGS: $ARGS"
+
 if [ -n "$token" ]; then
   ARGS="$ARGS --token $token"
 fi
+
 
 /keptn-config-generator ${ARGS}
 
