@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
-while getopts "i:o:v:b:" o; do
+while getopts "i:o:v:b:t:r:" o; do
    case "${o}" in
       i)
         export input=${OPTARG}
