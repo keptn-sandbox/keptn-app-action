@@ -43,11 +43,11 @@ if [ -n "$bump" ]; then
 fi
 
 if [ -n "$repository" ]; then
-  ARGS="$ARGS --repository repository"
+  ARGS="$ARGS --repository $repository"
 fi
 
 if [ -n "$token" ]; then
-  ARGS="$ARGS --token token"
+  ARGS="$ARGS --token $token"
 fi
 
 /keptn-config-generator ${ARGS}
