@@ -20,7 +20,7 @@ inputs:
     required: false
 runs:
   using: 'docker'
-  image: 'ghcr.io/thschue/keptn-update-action:dev-8e06f00'
+  image: 'docker://ghcr.io/thschue/keptn-update-action:dev-8e06f00'
   args:
     - '-i ${{ inputs.inputPath }}'
     - '-o ${{ inputs.outputPath }}'
