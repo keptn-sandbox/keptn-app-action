@@ -248,6 +248,9 @@ func updatePR(version string) {
 	fmt.Println("Remote updated.")
 
 	pr, err := c.Client.GetOpenPullRequest("keptn-"+version, "main")
+	if err != nil {
+		fmt.Println("could not get PR: %w", err)
+	}
 
 	if pr == nil {
 		_, err = c.Client.CreatePullRequest("keptn-"+version, "main", "Update Application Version "+version, "Update Application Version "+version)
