@@ -173,13 +173,13 @@ func execute() {
 
 		if c.Repository != "" && c.Token != "" {
 			fmt.Println("Will create/update GitHub - PR")
-			updatePR(v.Spec.Version, c.OutputPath+"/app-"+v.Name+".yaml")
+			updatePR(v.Spec.Version)
 		}
 
 	}
 }
 
-func updatePR(version string, path string) {
+func updatePR(version string) {
 	storer := memory.NewStorage()
 	fs := memfs.New()
 
@@ -221,20 +221,12 @@ func updatePR(version string, path string) {
 		fmt.Println(err)
 	}
 
-	err = copyDir(c.InputPath, w, fs)
+	err = copyDir(c.InputPath, fs, w)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	err = copyDir(c.OutputPath, w, fs)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	err = w.AddWithOptions(&git.AddOptions{
-		All: true,
-	})
-
+	err = copyDir(c.OutputPath, fs, w)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -255,16 +247,18 @@ func updatePR(version string, path string) {
 	}
 	fmt.Println("Remote updated.")
 
-	_, err = c.Client.CreatePullRequest("keptn-"+version, "main", "Update Application Version "+version, "Update Application Version "+version)
-	if err != nil {
-		fmt.Println("could not create PR: %w", err)
+	pr, err := c.Client.GetOpenPullRequest("keptn-"+version, "main")
+
+	if pr == nil {
+		_, err = c.Client.CreatePullRequest("keptn-"+version, "main", "Update Application Version "+version, "Update Application Version "+version)
+		if err != nil {
+			fmt.Println("could not create PR: %w", err)
+		}
 	}
 }
 
-func copyDir(pt string, w *git.Worktree, fs billy.Filesystem) error {
-	_ = fs.Remove(pt)
-
-	filepath.Walk(pt, func(path string, info os.FileInfo, err error) error {
+func copyDir(path string, fs billy.Filesystem, w *git.Worktree) error {
+	filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -282,13 +276,20 @@ func copyDir(pt string, w *git.Worktree, fs billy.Filesystem) error {
 		if err != nil {
 			return err
 		}
+
 		_, err = newFile.Write(data)
 		if err != nil {
 			return err
 		}
+
 		err = newFile.Close()
 		if err != nil {
 			return err
+		}
+
+		_, err = w.Add(path)
+		if err != nil {
+			fmt.Println(err)
 		}
 		return nil
 	})
