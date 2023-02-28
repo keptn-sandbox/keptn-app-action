@@ -16,5 +16,5 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o keptn-config-generator cmd
 FROM docker.io/debian:bullseye-slim
 
 COPY --from=builder /build/keptn-config-generator /keptn-config-generator
-COPY entrypoint.sh /entrypoint.sh
+
 ENTRYPOINT ["/keptn-config-generator"]
