@@ -30,7 +30,7 @@ inputs:
 
 runs:
   using: 'docker'
-  image: 'docker://ghcr.io/thschue/keptn-update-action:dev-7accfc1'
+  image: 'docker://ghcr.io/thschue/keptn-update-action:dev-7f07857'
   args:
     - '-i ${{ inputs.inputPath }}'
     - '-o ${{ inputs.outputPath }}'
