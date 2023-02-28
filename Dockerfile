@@ -1,4 +1,6 @@
-FROM docker.io/golang:1.19 as builder
+FROM docker.io/golang:1.19-alpine as builder
+RUN apk --no-cache add ca-certificates
+
 
 RUN mkdir -p /build
 
@@ -13,7 +15,10 @@ COPY . /build
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o keptn-config-generator cmd/keptn-update-action/main.go
 
-FROM docker.io/debian:bullseye-slim
+FROM alpine as final
+
+# copy ca certs
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 COPY --from=builder /build/keptn-config-generator /keptn-config-generator
 

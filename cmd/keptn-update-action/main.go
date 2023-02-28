@@ -9,6 +9,7 @@ import (
 	"github.com/go-git/go-billy/v5/memfs"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/storage/memory"
 	keptnv1alpha2 "github.com/keptn/lifecycle-toolkit/operator/apis/lifecycle/v1alpha2"
@@ -27,6 +28,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 var appList = make(map[string]keptnv1alpha2.KeptnApp)
@@ -233,7 +235,12 @@ func updatePR(version string) {
 
 	fmt.Println(w.Status())
 
-	_, err = w.Commit("Update app version", &git.CommitOptions{})
+	_, err = w.Commit("Update app version", &git.CommitOptions{Author: &object.Signature{
+		Name:  "Keptn Config Updater",
+		Email: "hello@keptn.sh",
+		When:  time.Time{},
+	},
+	})
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -296,7 +303,6 @@ func copyDir(path string, fs billy.Filesystem, w *git.Worktree) error {
 		}
 		return nil
 	})
-
 	return nil
 }
 

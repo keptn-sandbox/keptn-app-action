@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env ash
 
 set -e
 while getopts "i:o:v:b:t:r:" o; do

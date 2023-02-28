@@ -6,8 +6,12 @@ import (
 )
 
 func (c *Client) BranchExists(branchName string) (exists bool, err error) {
-	if branch, resp, err := c.githubInstance.client.Repositories.GetBranch(c.githubInstance.context, c.githubInstance.owner, c.githubInstance.repository, branchName); err != nil && resp.StatusCode != 404 {
+	branch, resp, err := c.githubInstance.client.Repositories.GetBranch(c.githubInstance.context, c.githubInstance.owner, c.githubInstance.repository, branchName)
+	if err != nil {
+		fmt.Println(err)
 		return false, err
+	} else if resp.StatusCode == 404 {
+		return false, nil
 	} else if branch == nil {
 		return false, nil
 	} else {
