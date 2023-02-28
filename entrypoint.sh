@@ -9,9 +9,6 @@ while getopts "i:o:v:b:t:r:" o; do
       o)
         export output=${OPTARG}
         ;;
-      v)
-        export version=${OPTARG}
-        ;;
       b)
         export bump=${OPTARG}
         ;;
@@ -40,12 +37,6 @@ fi
 
 if [ -n "$repository" ]; then
   ARGS="$ARGS --repository $repository"
-fi
-
-echo "ARGS: $ARGS"
-
-if [ -n "$version" ]; then
-  ARGS="$ARGS --version $version"
 fi
 
 if [ -n "$token" ]; then

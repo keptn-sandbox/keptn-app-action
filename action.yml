@@ -10,10 +10,6 @@ inputs:
     description: 'The path to the output file'
     default: ""
     required: false
-  version:
-    description: 'The version to update'
-    default: ""
-    required: false
   bump:
     description: 'The bump type'
     default: "patch"
@@ -37,7 +33,6 @@ runs:
     - '--bump ${{ inputs.bump }}'
     - '--token ${{ inputs.token }}'
     - '--repository ${{ inputs.repository }}'
-    - '--version ${{ inputs.version }}'
 
 
 
