@@ -53,7 +53,7 @@ if [ -n "$token" ]; then
 fi
 
 
-/keptn-config-generator ${ARGS}
+./keptn-config-generator ${ARGS}
 
 
 

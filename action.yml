@@ -16,15 +16,15 @@ inputs:
     required: false
   bump:
     description: 'The bump type'
-    default: "false"
+    default: "patch"
     required: false
   token:
     description: 'The github token'
-    default: ""
+    default: "none"
     required: true
   repository:
     description: 'The github repository'
-    default: ""
+    default: "none"
     required: true
 
 
@@ -34,10 +34,10 @@ runs:
   args:
     - '-i ${{ inputs.inputPath }}'
     - '-o ${{ inputs.outputPath }}'
-    - '-v ${{ inputs.version }}'
     - '-b ${{ inputs.bump }}'
     - '-t ${{ inputs.token }}'
     - '-r ${{ inputs.repository }}'
+    - '-v ${{ inputs.version }}'
 
 
 
