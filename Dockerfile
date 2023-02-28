@@ -17,4 +17,4 @@ FROM docker.io/debian:bullseye-slim
 
 COPY --from=builder /build/keptn-config-generator /keptn-config-generator
 COPY entrypoint.sh /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/keptn-config-generator"]
