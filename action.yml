@@ -4,11 +4,11 @@ author: 'The Keptn Contributors'
 inputs:
   inputPath:
     description: 'The path to the input file'
-    default: ""
+    default: "input"
     required: false
   outputPath:
     description: 'The path to the output file'
-    default: ""
+    default: "output"
     required: false
   bump:
     description: 'The bump type'
@@ -26,7 +26,7 @@ inputs:
 
 runs:
   using: 'docker'
-  image: 'docker://ghcr.io/thschue/keptn-update-action:dev-dc0d916'
+  image: 'docker://ghcr.io/thschue/keptn-update-action:dev-9025cdb'
   args:
     - '--inputPath ${{ inputs.inputPath }}'
     - '--outputPath ${{ inputs.outputPath }}'
