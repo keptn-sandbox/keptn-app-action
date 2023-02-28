@@ -28,11 +28,11 @@ runs:
   using: 'docker'
   image: 'docker://ghcr.io/thschue/keptn-update-action:dev-9025cdb'
   args:
-    - '--inputPath ${{ inputs.inputPath }}'
-    - '--outputPath ${{ inputs.outputPath }}'
-    - '--bump ${{ inputs.bump }}'
-    - '--token ${{ inputs.token }}'
-    - '--repository ${{ inputs.repository }}'
+    - '-i ${{ inputs.inputPath }}'
+    - '-o ${{ inputs.outputPath }}'
+    - '-b ${{ inputs.bump }}'
+    - '-t ${{ inputs.token }}'
+    - '-r ${{ inputs.repository }}'
 
 
 
